@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "216157688390",
+    "firebase_url": "https://launcher-tradivel.firebaseio.com",
+    "project_id": "launcher-tradivel",
+    "storage_bucket": "launcher-tradivel.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:216157688390:android:bc6258c592b38522467047",
+        "android_client_info": {
+          "package_name": "com.mgssoft.launchertradivel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "216157688390-1l9tc0ar8lbmu31gu5d8bn32u68lt7cn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGPJjKD-ezwgTePVJAoDC4fV1r8SmrTwk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "216157688390-1l9tc0ar8lbmu31gu5d8bn32u68lt7cn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
