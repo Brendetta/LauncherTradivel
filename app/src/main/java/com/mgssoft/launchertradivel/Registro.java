@@ -79,7 +79,7 @@ public class Registro extends AppCompatActivity {
                 longitudeCurrentPosition = gps.getLongitude(); // returns longitude
 
                 //TODO DESCOMENTAR
-                String url = String.format("http://%1$s:%2$s/notification/registerLocation", "195.81.223.157", "81");
+                String url = String.format("http://%1$s:%2$s/notification/registerLocation", "portal.afinsoftware.com", "443");
 
                 LocationData locationData = new LocationData();
                 locationData.dni = getSharedPreferences("LAUNCHERTRADIVEL", MODE_PRIVATE).getString("dni", "");

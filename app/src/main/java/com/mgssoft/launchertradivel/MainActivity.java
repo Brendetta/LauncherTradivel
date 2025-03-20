@@ -1,5 +1,20 @@
 package com.mgssoft.launchertradivel;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,6 +46,8 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity {
 
     private static final String synergyPackage = "com.exact.synergy";//"com.exact.synergy.exactess";
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private FusedLocationProviderClient fusedLocationClient;
     private ImageButton ibLaunch, ibCheck;
     private View progress;
     private MainActivity context;
@@ -47,7 +64,20 @@ public class MainActivity extends AppCompatActivity {
         progress = findViewById(R.id.progressBar);
         ibCheck = findViewById(R.id.checkUser);
         etUsuario = findViewById(R.id.etUsuario);
+//añadido recientemente
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // Verifica y solicita permisos
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            LocationService();
+        }
+//hasta aquí
         ibCheck.setOnClickListener(view -> {
             String dni = etUsuario.getText().toString();
             if (!dni.equals("")) {
@@ -62,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 setButtons();*/
 
                 //TODO DESCOMENTAR
-                String url = String.format("http://%1$s:%2$s/notification/register", "195.81.223.157", "81");
+                String url = String.format("http://%1$s:%2$s/notification/register", "portal.afinsoftware.com", "443");
 
                 RegistrationData registrationData = new RegistrationData();
                 registrationData.token = sharedPreferences.getString("token", "");

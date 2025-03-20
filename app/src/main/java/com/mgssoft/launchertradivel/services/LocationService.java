@@ -45,10 +45,41 @@ public class LocationService extends Service implements LocationListener {
 
     public LocationService(Context context) {
         this.mContext = context;
-        getLocation();
+        obtenerUbicacion();
     }
+//añadido recientemente
+    private void obtenerUbicacion() {
+        fusedLocationClient.getLastLocation()
+                .addOnCompleteListener(new OnCompleteListener<Location>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Location> task) {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            Location location = task.getResult();
+                            double latitud = location.getLatitude();
+                            double longitud = location.getLongitude();
 
-    public Location getLocation() {
+                            Log.d("UBICACIÓN", "Latitud: " + latitud + ", Longitud: " + longitud);
+                            Toast.makeText(MainActivity.this, "Ubicación: " + latitud + ", " + longitud, Toast.LENGTH_LONG).show();
+                        } else {
+                            Log.w("UBICACIÓN", "No se pudo obtener la ubicación.");
+                            Toast.makeText(MainActivity.this, "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    } //hasta aquí
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                obtenerUbicacion();
+            } else {
+                Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+    /*public Location getLocation() {
         try {
             locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
 
@@ -65,11 +96,11 @@ public class LocationService extends Service implements LocationListener {
                 if (isNetworkEnabled) {
                     if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                             ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        /*locationManager.requestLocationUpdates(
+                        *//*locationManager.requestLocationUpdates(
                                 LocationManager.NETWORK_PROVIDER,
                                 MIN_TIME_BW_UPDATES,
                                 MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                         */
+                         *//*
                         locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, this,null);
                         Log.d("Network", "Network");
                         if (locationManager != null) {
@@ -86,11 +117,11 @@ public class LocationService extends Service implements LocationListener {
                     if (location == null) {
                         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                                 ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                            /*locationManager.requestLocationUpdates(
+                            *//*locationManager.requestLocationUpdates(
                                     LocationManager.GPS_PROVIDER,
                                     MIN_TIME_BW_UPDATES,
                                     MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                             */
+                             *//*
                             locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, this,null);
                             Log.d("GPS Enabled", "GPS Enabled");
                             if (locationManager != null) {
@@ -112,7 +143,7 @@ public class LocationService extends Service implements LocationListener {
         }
 
         return location;
-    }
+    }*/
 
     /**
      * Stop using GPS listener

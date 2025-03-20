@@ -1,46 +1,31 @@
 package com.mgssoft.launchertradivel;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.BuildConfig;
 import com.karumi.dexter.Dexter;
-import com.karumi.dexter.DexterBuilder;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
-import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
 public class SplashActivity extends AppCompatActivity {
     private View progressBar;
