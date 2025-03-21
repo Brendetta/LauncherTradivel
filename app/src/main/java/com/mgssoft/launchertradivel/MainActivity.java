@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
                 setButtons();*/
 
                 //TODO DESCOMENTAR
-                String url = String.format("http://%1$s:%2$s/notification/register", "195.81.223.157", "81");
+                String url = String.format("http://%1$s:%2$s/notification/register", "intranet.tradivel.com", "81");
 
                 RegistrationData registrationData = new RegistrationData();
                 registrationData.token = sharedPreferences.getString("token", "");

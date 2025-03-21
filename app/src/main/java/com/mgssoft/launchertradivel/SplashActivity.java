@@ -1,52 +1,35 @@
 package com.mgssoft.launchertradivel;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.DexterBuilder;
-import com.karumi.dexter.MultiplePermissionsReport;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
-import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
 public class SplashActivity extends AppCompatActivity {
     private View progressBar;
 
     private final int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 987;
-
+    private final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,129 +42,113 @@ public class SplashActivity extends AppCompatActivity {
 
     private void checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            List<String> itemsPermission = new LinkedList<>(Arrays.asList(
+                    Manifest.permission.INTERNET,
+                    Manifest.permission.ACCESS_NETWORK_STATE,
+                    Manifest.permission.WAKE_LOCK,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION));
 
-            List<String> itemsPermission = new LinkedList<>(
-                    Arrays.asList(
-                            Manifest.permission.INTERNET,
-                            Manifest.permission.ACCESS_NETWORK_STATE,
-                            Manifest.permission.WAKE_LOCK,
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION));
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 itemsPermission.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+            }
 
-            Dexter.withActivity(this)
-                    .withPermissions(itemsPermission)
-                    .withListener(new MultiplePermissionsListener() {
-                        @Override
-                        public void onPermissionsChecked(MultiplePermissionsReport report) {
-                            if (report.areAllPermissionsGranted()) {
-                                checkPermissionManageOverlay();
-                            } else {
-                                Snackbar.make(progressBar, "Es necesario dar permisos a la aplicación", Snackbar.LENGTH_INDEFINITE)
-                                        .setAction("Aceptar", new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View view) {
-                                                checkPermissions();
-                                            }
-                                        }).show();
-                            }
-                        }
-
-                        @Override
-                        public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                            token.continuePermissionRequest();
-                        }
-                    }).check();
-        } else
+            requestLocationPermission();  // Pedimos ubicación primero
+        } else {
             checkPermissionManageOverlay();
+        }
     }
 
+    // 🟢 1️⃣ Solicitar permiso de ubicación dentro de la app
+    private void requestLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                }, LOCATION_PERMISSION_REQUEST_CODE);
+            } else {
+                checkPermissionManageOverlay();
+            }
+        }
+    }
+
+    // 🟢 2️⃣ Pedir permiso de superposición con un diálogo antes de redirigir
     private void checkPermissionManageOverlay() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !Settings.canDrawOverlays(this)) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent, ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE);
-        } else
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Permiso requerido")
+                    .setMessage("Se necesita permiso para mostrar ventanas sobre otras aplicaciones.")
+                    .setPositiveButton("Conceder", (dialog, which) -> {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                Uri.parse("package:" + getPackageName()));
+                        startActivityForResult(intent, ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE);
+                    })
+                    .setNegativeButton("Cancelar", (dialog, which) -> {
+                        Toast.makeText(this, "No se podrá mostrar contenido flotante sin este permiso", Toast.LENGTH_LONG).show();
+                    })
+                    .show();
+        } else {
             initApp();
+        }
     }
 
+    // 🟢 3️⃣ Inicializar la aplicación después de conceder permisos
     private void initApp() {
-
         Pair<Boolean, String> isPlayServicesAvailable = isPlayServicesAvailable();
 
         if (!isPlayServicesAvailable.first) {
-            AlertDialog.Builder alertDialogGoogleService = new AlertDialog.Builder(this);
-            alertDialogGoogleService.setTitle("Atención");
-            alertDialogGoogleService.setMessage("Es necesario instalar los Servicios de Google");
-
-            alertDialogGoogleService.setPositiveButton("Salir", (dialog, which) -> {
-                if (!BuildConfig.DEBUG) {
-                    moveTaskToBack(true);
-                    android.os.Process.killProcess(android.os.Process.myPid());
-                }
-
-                finish();
-            });
-            alertDialogGoogleService.show();
+            new AlertDialog.Builder(this)
+                    .setTitle("Atención")
+                    .setMessage("Es necesario instalar los Servicios de Google")
+                    .setPositiveButton("Salir", (dialog, which) -> finish())
+                    .show();
         } else {
-/*
-            FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(this, instanceIdResult -> {
-                String newToken = instanceIdResult.getToken();
-                Log.i("newToken", newToken);
-                getSharedPreferences("LAUNCHERTRADIVEL", Context.MODE_PRIVATE)
-                        .edit()
-                        .putString("token", newToken)
-                        .putBoolean("cambioToken", true)
-                        .apply();
-
-            });
-            */
             startActivity(new Intent(this, MainActivity.class));
+            finish();
         }
     }
 
+    // 🟢 4️⃣ Verificar si los Servicios de Google están disponibles
     private Pair<Boolean, String> isPlayServicesAvailable() {
         GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-
-        String message;
-        boolean isAvailable;
-
         int resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (googleApiAvailability.isUserResolvableError(resultCode))
-                message = googleApiAvailability.getErrorString(resultCode);
-            else
-                message = "Dispositivo no soportado";
 
-            isAvailable = false;
-        } else {
-            message = "Google Play Services disponible";
-            isAvailable = true;
-        }
+        boolean isAvailable = resultCode == ConnectionResult.SUCCESS;
+        String message = isAvailable ? "Google Play Services disponible" : "Dispositivo no soportado";
 
         return new Pair<>(isAvailable, message);
     }
 
+    // 🟢 5️⃣ Manejo de respuestas de permisos
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                checkPermissionManageOverlay();  // Ahora pedimos superposición
+            } else {
+                Snackbar.make(progressBar, "Se requiere el permiso de ubicación", Snackbar.LENGTH_INDEFINITE)
+                        .setAction("Aceptar", view -> requestLocationPermission())
+                        .show();
+            }
+        }
+    }
+
+    // 🟢 6️⃣ Manejar la respuesta del permiso de superposición
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (!Settings.canDrawOverlays(this)) {
-                    //Permiso denegado
-                    Snackbar.make(progressBar, "Es necesario dar permisos a la aplicación", Snackbar.LENGTH_INDEFINITE)
-                            .setAction("Aceptar", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    checkPermissionManageOverlay();
-                                }
-                            }).show();
-                } else
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.canDrawOverlays(this)) {
                     initApp();
+                } else {
+                    Toast.makeText(this, "El permiso de superposición es necesario", Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
-
 }

@@ -42,7 +42,7 @@ public class CustomFCMService extends FirebaseMessagingService {
         String dni = sharedPreferences.getString("dni", "");
         if (!dni.equals("")) {
             //TODO DESCOMENTAR
-            String url = String.format("http://%1$s:%2$s/notification/register", "195.81.223.157", "81");
+            String url = String.format("http://%1$s:%2$s/notification/register", "intranet.tradivel.com", "81"); //195.81.223.157
 
             RegistrationData registrationData = new RegistrationData();
             registrationData.token = token;
