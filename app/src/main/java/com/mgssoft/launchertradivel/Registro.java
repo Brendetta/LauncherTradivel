@@ -32,6 +32,11 @@ import com.mgssoft.launchertradivel.services.LocationService;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
+/**
+* Actividad de registro de ubicación del usuario.
+* Obtiene la latitud y longitud actuales y las envía al servidor.
+*/
 public class Registro extends AppCompatActivity {
 
     final Context context = this;
@@ -50,15 +55,18 @@ public class Registro extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registro);
 
+        //Configura WakeLock para mantener la CPU activa durante la localización.
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
 
+        //Inicialización de vistas.
         textView = findViewById(R.id.tvRegistro);
         button = findViewById(R.id.btAceptar);
         progressBar = findViewById(R.id.progressBar);
 
         button.setOnClickListener(view -> onBackPressed());
 
+        //Configuración de criterios para obtener la ubicación.
         Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         criteria.setPowerRequirement(Criteria.POWER_LOW);
@@ -74,16 +82,17 @@ public class Registro extends AppCompatActivity {
             wakeLock.acquire();
 
             gps = new LocationService(context);
-            if (gps.canGetLocation()) { // gps enabled} // return boolean true/false
-                latitudeCurrentPosition = gps.getLatitude(); // returns latitude
-                longitudeCurrentPosition = gps.getLongitude(); // returns longitude
+            if (gps.canGetLocation()) { //Comprobación de si el GPS está habilitado.
+                latitudeCurrentPosition = gps.getLatitude(); //devuelve latitud.
+                longitudeCurrentPosition = gps.getLongitude(); //devuelve longitud.
 
-                //TODO DESCOMENTAR
+                //Envia datos de ubicación al servidor.
+                //Según configuración actual se genera la URL ""http://intranet.tradivel.com:81/notification/register"
+                //***Recordatorio***, si se cambia la IP o el dominio en algún momento, se debe cambiar también en network_security_config.xml
                 String url = String.format("http://%1$s:%2$s/notification/registerLocation", "intranet.tradivel.com", "81"); // "195.81.223.157"
 
                 LocationData locationData = new LocationData();
                 locationData.dni = getSharedPreferences("LAUNCHERTRADIVEL", MODE_PRIVATE).getString("dni", "");
-
                 locationData.lat = latitudeCurrentPosition;
                 locationData.lon = longitudeCurrentPosition;
 
@@ -181,17 +190,16 @@ public class Registro extends AppCompatActivity {
             e.printStackTrace();
             changeView();
         }
-        finally {
-
-        }
     }
 
+    //Maneja el evento de retroceso para finalizar la actividad.
     @Override
     public void onBackPressed() {
         super.onBackPressed();
         finish();
     }
 
+    //Cambia la vista para mostrar el resultado del registro de ubicación.
     private void changeView() {
         textView.setVisibility(View.VISIBLE);
         button.setVisibility(View.VISIBLE);

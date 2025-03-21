@@ -25,6 +25,11 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+
+/**
+* Actividad de presentación (Splash) de la aplicación.
+* Verifica permisos necesarios y disponibilidad de Google Play Services antes de iniciar la aplicación.
+*/
 public class SplashActivity extends AppCompatActivity {
     private View progressBar;
 
@@ -37,11 +42,13 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
         progressBar = findViewById(R.id.progressBar);
 
-        checkPermissions();
+        checkPermissions(); //Verificar permisos requeridos.
     }
 
+    //Verifica y solicita los permisos necesarios para la aplicación.
     private void checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            //Lista de permisos requeridos.
             List<String> itemsPermission = new LinkedList<>(Arrays.asList(
                     Manifest.permission.INTERNET,
                     Manifest.permission.ACCESS_NETWORK_STATE,
@@ -49,17 +56,18 @@ public class SplashActivity extends AppCompatActivity {
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.ACCESS_FINE_LOCATION));
 
+            //Desde Android 10 (API 29) en adelante, se requiere permiso de ubicación en segundo plano.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 itemsPermission.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
             }
 
-            requestLocationPermission();  // Pedimos ubicación primero
+            requestLocationPermission(); //Pedimos ubicación primero.
         } else {
-            checkPermissionManageOverlay();
+            checkPermissionManageOverlay(); //Si la versión es menor a Android 6, pasamos al siguiente permiso (permiso de overlay).
         }
     }
 
-    // 🟢 1️⃣ Solicitar permiso de ubicación dentro de la app
+    //Solicita permiso de ubicación dentro de la app.
     private void requestLocationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -68,12 +76,14 @@ public class SplashActivity extends AppCompatActivity {
                         Manifest.permission.ACCESS_COARSE_LOCATION
                 }, LOCATION_PERMISSION_REQUEST_CODE);
             } else {
-                checkPermissionManageOverlay();
+                checkPermissionManageOverlay(); //Si ya está concedido, pasamos al siguiente permiso.
             }
         }
     }
 
-    // 🟢 2️⃣ Pedir permiso de superposición con un diálogo antes de redirigir
+    //Verifica y solicita el permiso para mostrar superposiciones (ventanas flotantes).
+    //En caso de no tener permiso de superposición, se muestra un diálogo antes de redirigir.
+    //Este permiso se debe activar manualmente por el usuario de forma obligatoria.
     private void checkPermissionManageOverlay() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             new AlertDialog.Builder(this)
@@ -89,11 +99,11 @@ public class SplashActivity extends AppCompatActivity {
                     })
                     .show();
         } else {
-            initApp();
+            initApp(); //Si ya está concedido, iniciamos la aplicación.
         }
     }
 
-    // 🟢 3️⃣ Inicializar la aplicación después de conceder permisos
+    //Inicializa la aplicación después de que los permisos hayan sido concedidos.
     private void initApp() {
         Pair<Boolean, String> isPlayServicesAvailable = isPlayServicesAvailable();
 
@@ -109,7 +119,8 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
-    // 🟢 4️⃣ Verificar si los Servicios de Google están disponibles
+    //Verificar Google Play Services está disponible en el dispositivo.
+    //@return un par que indica si está disponible y un mensaje informativo.
     private Pair<Boolean, String> isPlayServicesAvailable() {
         GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
         int resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this);
@@ -120,15 +131,16 @@ public class SplashActivity extends AppCompatActivity {
         return new Pair<>(isAvailable, message);
     }
 
-    // 🟢 5️⃣ Manejo de respuestas de permisos
+    //Manejo de respuestas de la solicitud de permisos.
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                checkPermissionManageOverlay();  // Ahora pedimos superposición
+                checkPermissionManageOverlay(); //Ahora pedimos el permiso de superposición.
             } else {
+                //Si el usuario no concede el permiso de ubicación, mostramos un Snackbar con opción para reintentar.
                 Snackbar.make(progressBar, "Se requiere el permiso de ubicación", Snackbar.LENGTH_INDEFINITE)
                         .setAction("Aceptar", view -> requestLocationPermission())
                         .show();
@@ -136,7 +148,7 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
-    // 🟢 6️⃣ Manejar la respuesta del permiso de superposición
+    //Manejar la respuesta del permiso de superposición.
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
