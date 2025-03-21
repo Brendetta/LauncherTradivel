@@ -28,13 +28,18 @@ import com.mgssoft.launchertradivel.services.RegistrationData;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
+/**
+ * Actividad principal de la aplicación.
+ * Permite al usuario ingresar su DNI, registrarlo en el servidor y lanzar una aplicación externa.
+ */
 public class MainActivity extends AppCompatActivity {
 
-    private static final String synergyPackage = "com.exact.synergy";//"com.exact.synergy.exactess";
-    private ImageButton ibLaunch, ibCheck;
-    private View progress;
+    private static final String synergyPackage = "com.exact.synergy";//"com.exact.synergy.exactess"; //Nombre (nuevo y antiguo) del paquete de la aplicación externa.
+    private ImageButton ibLaunch, ibCheck;//Botones para lanzar la app externa y registrar el usuario.
+    private View progress;//Indicador de progreso de carga.
     private MainActivity context;
-    private EditText etUsuario;
+    private EditText etUsuario;//Campo de entrada para el DNI del usuario.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,12 +47,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         context = this;
 
+        //Inicialización de vistas.
         ibLaunch = findViewById(R.id.ibLaunch);
         ibLaunch.setImageDrawable(getDrawable(R.drawable.ic_launcher_button));
         progress = findViewById(R.id.progressBar);
         ibCheck = findViewById(R.id.checkUser);
         etUsuario = findViewById(R.id.etUsuario);
 
+        //Configuración del botón de verificación de usuario.
         ibCheck.setOnClickListener(view -> {
             String dni = etUsuario.getText().toString();
             if (!dni.equals("")) {
@@ -61,9 +68,12 @@ public class MainActivity extends AppCompatActivity {
                 getSharedPreferences("LAUNCHERTRADIVEL", MODE_PRIVATE).edit().putBoolean("cambioToken", false).apply();
                 setButtons();*/
 
-                //TODO DESCOMENTAR
+                //URL para registrar el usuario en el servidor.
+                //Según configuración actual se genera la URL ""http://intranet.tradivel.com:81/notification/register"
+                //***Recordatorio***, si se cambia la IP o el dominio en algún momento, se debe cambiar también en network_security_config.xml
                 String url = String.format("http://%1$s:%2$s/notification/register", "intranet.tradivel.com", "81");
 
+                //Creación de objeto con los datos de registro.
                 RegistrationData registrationData = new RegistrationData();
                 registrationData.token = sharedPreferences.getString("token", "");
                 registrationData.dni = dni;
@@ -75,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
+                //Enviar solicitud al servidor.
                 JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, data,
                         response -> {
                             Log.i("notificacion", String.format("Registrado: %s", response));
@@ -105,16 +117,24 @@ public class MainActivity extends AppCompatActivity {
         setButtons();
     }
 
+
+
+    //Configura los botones en función del estado de registro del usuario.
     private void setButtons() {
         SharedPreferences preferences = getSharedPreferences("LAUNCHERTRADIVEL", MODE_PRIVATE);
         etUsuario.setText(preferences.getString("dni", ""));
+
+
         if (preferences.getBoolean("cambioToken", true)) {
+            //Usuario no registrado o token cambiado.
             ibCheck.setImageResource(R.drawable.ic_check_red);
             ibLaunch.setColorFilter(Color.argb(255, 100, 100, 100), PorterDuff.Mode.MULTIPLY);
             ibLaunch.setOnClickListener(view -> Toast.makeText(context, "Es necesario registrar el usuario primero.", Toast.LENGTH_SHORT).show());
         } else {
+            //Usuario registrado correctamente.
             ibCheck.setImageResource(R.drawable.ic_check_green);
             try {
+                //Verifica si la aplicación externa está instalada.
                 getPackageManager().getApplicationInfo(synergyPackage, 0);
                 ibLaunch.clearColorFilter();
                 ibLaunch.setOnClickListener(view -> {
@@ -122,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
             } catch (PackageManager.NameNotFoundException e) {
+                //Si la app no está instalada, redirige a Google Play para descargarla.
                 ibLaunch.setColorFilter(Color.argb(255, 100, 100, 100), PorterDuff.Mode.MULTIPLY);
                 ibLaunch.setOnClickListener(view -> {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
