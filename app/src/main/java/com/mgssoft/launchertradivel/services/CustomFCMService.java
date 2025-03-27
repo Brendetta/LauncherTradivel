@@ -29,6 +29,15 @@ public class CustomFCMService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         Log.i("Notificacion Recibida","Start Activity");
 
+        // Mostrar detalles del mensaje
+        if (remoteMessage.getData().size() > 0) {
+            Log.i("FCM", "Datos de la notificación: " + remoteMessage.getData().toString());
+        }
+
+        if (remoteMessage.getNotification() != null) {
+            Log.i("FCM", "Cuerpo de la notificación: " + remoteMessage.getNotification().getBody());
+        }
+
         //Inicia la actividad Registro cuando se recibe una notificación.
         startActivity(new Intent(this, Registro.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
     }
@@ -37,13 +46,17 @@ public class CustomFCMService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-        Log.i("Nuevo Token",token);
+        //Log.i("Nuevo Token",token);
+        Log.i("Nuevo Token", "Método onNewToken ejecutado"); //Depuración
+        Log.i("Nuevo Token", "Token generado: " + token); //Depuración
 
         //Guarda el nuevo token en SharedPreferences.
         SharedPreferences sharedPreferences = getSharedPreferences("LAUNCHERTRADIVEL", MODE_PRIVATE);
         sharedPreferences.edit()
                 .putString("token", token)
                 .putBoolean("cambioToken", true).apply();
+
+        Log.i("Nuevo Token", "Token guardado en SharedPreferences"); //Depuración
 
         //TODO: ELIMINAR ESTA LÍNEA EN PRODUCCIÓN.
         //Toast.makeText(this,"NUEVO TOKEN",Toast.LENGTH_SHORT).show();
@@ -57,6 +70,8 @@ public class CustomFCMService extends FirebaseMessagingService {
             //***Recordatorio***, si se cambia la IP o el dominio en elgún momento, se debe cambiar también en network_security_config.xml
             String url = String.format("http://%1$s:%2$s/notification/register", "intranet.tradivel.com", "81"); //195.81.223.157 --> IP usada antiguamente.
 
+            Log.i("Registro Token", "URL: " + url); //Depuración
+
             //Crea un objeto con los datos de registro.
             RegistrationData registrationData = new RegistrationData();
             registrationData.token = token;
@@ -68,8 +83,11 @@ public class CustomFCMService extends FirebaseMessagingService {
             try {
                 data = new JSONObject(gson.toJson(registrationData));
             } catch (JSONException e) {
+                Log.e("Registro Token", "Error al convertir datos a JSON: " + e.getMessage()); //Depuración
                 e.printStackTrace();
             }
+
+            Log.i("Registro Token", "Datos enviados: " + data.toString()); //Depuración
 
             //Crea una solicitud HTTP POST para registrar el token en el servidor.
             JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, data,
@@ -78,6 +96,10 @@ public class CustomFCMService extends FirebaseMessagingService {
 
             //Agrega la solicitud a la cola de peticiones de Volley.
             Volley.newRequestQueue(this).add(jsonRequest);
+
+        } else {
+            Log.w("Registro Token", "DNI no encontrado en SharedPreferences, no se envía el token");
         }
+
     }
 }
