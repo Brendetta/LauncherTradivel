@@ -86,6 +86,11 @@ public class Registro extends AppCompatActivity {
                 latitudeCurrentPosition = gps.getLatitude(); //devuelve latitud.
                 longitudeCurrentPosition = gps.getLongitude(); //devuelve longitud.
 
+                /*latitudeCurrentPosition = 666666;
+                longitudeCurrentPosition = 666666;*/
+
+                Log.i("Ubicación", "Lat: " + latitudeCurrentPosition + ", Lon: " + longitudeCurrentPosition); //Depuración
+
                 //Envia datos de ubicación al servidor.
                 //Según configuración actual se genera la URL ""http://intranet.tradivel.com:81/notification/register"
                 //***Recordatorio***, si se cambia la IP o el dominio en algún momento, se debe cambiar también en network_security_config.xml
