@@ -2,6 +2,7 @@ package com.mgssoft.launchertradivel;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.StrictMode;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.core.app.ActivityCompat;
@@ -127,7 +130,21 @@ public class Registro extends AppCompatActivity {
 
                 Volley.newRequestQueue(context).add(jsonRequest);
 
+            }else { // 🚨 Si el GPS está desactivado, pedir activación antes de continuar
+                new AlertDialog.Builder(this)
+                        .setTitle("Ubicación desactivada")
+                        .setMessage("Para continuar, debes activar la ubicación.")
+                        .setPositiveButton("Activar", (dialog, which) -> {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Cancelar", (dialog, which) -> {
+                            dialog.dismiss();
+                            finish(); // Cierra la actividad si no activan la ubicación
+                        })
+                        .show();
             }
+
 
             wakeLock.release();
             //endregion Nuevo
