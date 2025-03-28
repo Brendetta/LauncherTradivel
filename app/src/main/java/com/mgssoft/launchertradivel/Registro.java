@@ -9,6 +9,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -54,6 +55,11 @@ public class Registro extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registro);
+
+        /*StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .permitAll()
+                .build());*/
+
 
         //Configura WakeLock para mantener la CPU activa durante la localización.
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -206,8 +212,10 @@ public class Registro extends AppCompatActivity {
 
     //Cambia la vista para mostrar el resultado del registro de ubicación.
     private void changeView() {
-        textView.setVisibility(View.VISIBLE);
-        button.setVisibility(View.VISIBLE);
-        progressBar.setVisibility(View.GONE);
+        runOnUiThread(() -> {
+            textView.setVisibility(View.VISIBLE);
+            button.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.GONE);
+        });
     }
 }
